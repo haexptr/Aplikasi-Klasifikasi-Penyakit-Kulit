@@ -1,0 +1,46 @@
+name: diagnosiskulit
+description: Aplikasi klasifikasi penyakit kulit menggunakan AI
+
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  
+  cupertino_icons: ^1.0.6
+  
+  # Image Processing
+  image_picker: ^1.0.7
+  image: ^4.1.7
+  
+  # TensorFlow Lite - VERSI TERBARU!
+  tflite_flutter: ^0.12.1  # ← GANTI KE 0.12.1
+  
+  # Date & Time
+  intl: ^0.20.2
+  
+  # Database
+  sqflite: ^2.3.2
+  path_provider: ^2.1.2
+  path: ^1.8.3
+  
+  # Permissions
+  permission_handler: ^11.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/model_dynamic_quant.tflite
+    - assets/labels.txt
