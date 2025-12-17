@@ -26,10 +26,13 @@ class _ResultScreenState extends State<ResultScreen> {
 
   Future<void> _savePrediction() async {
     try {
+      // Simpan confidence ternormalisasi (0..1)
+      final normalizedConfidence = AppConstants.normalizeConfidence(widget.predictions[0].confidence);
+
       final prediction = Prediction(
         imagePath: widget.imagePath,
         diseaseName: widget.predictions[0].label,
-        confidence: widget.predictions[0].confidence,
+        confidence: normalizedConfidence,
         top3Predictions: jsonEncode(
           widget.predictions.map((p) => p.toJson()).toList(),
         ),
@@ -63,7 +66,16 @@ class _ResultScreenState extends State<ResultScreen> {
   @override
   Widget build(BuildContext context) {
     final topPrediction = widget.predictions[0];
-    final isLowConfidence = topPrediction.confidence < AppConstants.confidenceThreshold;
+    // Check if the prediction is Unknown or confidence is too low (< 45%)
+    final normConfidence = AppConstants.normalizeConfidence(topPrediction.confidence);
+    final isInvalid = topPrediction.label == 'Unknown_Normal' || normConfidence < 0.45;
+
+    if (isInvalid) {
+      return _buildInvalidScreen(context);
+    }
+
+    // Untuk pengecekan low confidence (warning only) gunakan nilai ternormalisasi juga
+    final isLowConfidence = normConfidence < AppConstants.confidenceThreshold;
 
     return Scaffold(
       appBar: AppBar(
@@ -303,7 +315,8 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   Widget _buildConfidenceIndicator(double confidence, {bool isMain = false}) {
-    final percentage = confidence * 100;
+    final norm = AppConstants.normalizeConfidence(confidence);
+    final percentage = norm * 100;
     final color = AppConstants.getConfidenceColor(confidence);
     final text = AppConstants.getConfidenceText(confidence);
 
@@ -335,7 +348,7 @@ class _ResultScreenState extends State<ResultScreen> {
         ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: LinearProgressIndicator(
-            value: confidence,
+            value: norm,
             minHeight: isMain ? 12 : 8,
             backgroundColor: color.withOpacity(0.2),
             valueColor: AlwaysStoppedAnimation<Color>(color),
@@ -374,6 +387,58 @@ class _ResultScreenState extends State<ResultScreen> {
         const SizedBox(height: 8),
         _buildConfidenceIndicator(pred.confidence),
       ],
+    );
+  }
+  Widget _buildInvalidScreen(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Hasil Analisis')),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Display the illustration if available, else icon
+              Image.asset(
+                'assets/invalid_image.png',
+                height: 200,
+                errorBuilder: (_, __, ___) => const Icon(
+                  Icons.sentiment_dissatisfied_rounded,
+                  size: 100,
+                  color: Colors.grey,
+                ),
+              ),
+              const SizedBox(height: 32),
+              Text(
+                AppConstants.invalidImageTitle,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppConstants.textPrimary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                AppConstants.invalidImageMessage,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16, color: AppConstants.textSecondary),
+              ),
+              const SizedBox(height: 48),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.camera_alt),
+                  label: const Text('Ambil Foto Ulang'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

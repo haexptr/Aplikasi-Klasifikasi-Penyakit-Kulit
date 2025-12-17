@@ -269,7 +269,8 @@ class HistoryDetailScreen extends StatelessWidget {
   }
 
   Widget _buildConfidenceIndicator(double confidence) {
-    final percentage = confidence * 100;
+    final norm = AppConstants.normalizeConfidence(confidence);
+    final percentage = norm * 100;
     final color = AppConstants.getConfidenceColor(confidence);
     final text = AppConstants.getConfidenceText(confidence);
 
@@ -301,7 +302,7 @@ class HistoryDetailScreen extends StatelessWidget {
         ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: LinearProgressIndicator(
-            value: confidence,
+            value: norm,
             minHeight: 8,
             backgroundColor: color.withOpacity(0.2),
             valueColor: AlwaysStoppedAnimation<Color>(color),

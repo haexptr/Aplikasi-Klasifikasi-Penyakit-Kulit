@@ -96,17 +96,13 @@ class DatabaseService {
   // Get count of predictions
   Future<int> getPredictionCount() async {
     final db = await database;
-    // FIXED: Use rawQuery with COUNT directly
     final result = await db.rawQuery('SELECT COUNT(*) as count FROM ${AppConstants.tableName}');
-    if (result.isNotEmpty) {
-      return result.first['count'] as int? ?? 0;
-    }
-    return 0;
+    return Sqflite.firstIntValue(result) ?? 0;
   }
 
   // Close database
   Future<void> close() async {
     final db = await database;
-    db.close();
+    await db.close();
   }
 }

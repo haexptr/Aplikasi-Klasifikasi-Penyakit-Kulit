@@ -1,3 +1,4 @@
+// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -138,7 +139,8 @@ class _SplashScreenState extends State<SplashScreen> {
               'Deteksi Penyakit Kulit dengan AI',
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.white.withValues(alpha: 0.9),
+                // <-- perbaikan: withOpacity, bukan withValues
+                color: Colors.white.withOpacity(0.9),
               ),
             ),
             const SizedBox(height: 48),

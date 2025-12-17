@@ -12,16 +12,15 @@ class ImagePickerService {
     return status.isGranted;
   }
 
-  // Request storage permission (for gallery)
+  // Request storage permission (for gallery) - simplified & robust
   Future<bool> requestStoragePermission() async {
     if (Platform.isAndroid) {
-      // Android 13+ uses different permissions
-      final androidInfo = await Permission.photos.status;
-      if (androidInfo.isDenied) {
-        final result = await Permission.photos.request();
-        return result.isGranted;
-      }
-      return androidInfo.isGranted;
+      // Request storage first (works for many Android versions)
+      final storageStatus = await Permission.storage.request();
+      if (storageStatus.isGranted) return true;
+      // fallback try photos/media (Android 13+)
+      final photos = await Permission.photos.request();
+      return photos.isGranted;
     } else {
       // iOS
       final status = await Permission.photos.request();
@@ -32,14 +31,12 @@ class ImagePickerService {
   // Pick image from camera
   Future<File?> pickImageFromCamera() async {
     try {
-      // Request permission
       final hasPermission = await requestCameraPermission();
       if (!hasPermission) {
         debugPrint('Izin kamera ditolak');
         return null;
       }
 
-      // Pick image
       final XFile? photo = await _picker.pickImage(
         source: ImageSource.camera,
         imageQuality: 85,
@@ -47,12 +44,10 @@ class ImagePickerService {
         maxHeight: 1024,
       );
 
-      if (photo != null) {
-        return File(photo.path);
-      }
+      if (photo != null) return File(photo.path);
       return null;
-    } catch (e) {
-      debugPrint('Error picking image from camera: $e');
+    } catch (e, st) {
+      debugPrint('Error picking image from camera: $e\n$st');
       return null;
     }
   }
@@ -60,14 +55,12 @@ class ImagePickerService {
   // Pick image from gallery
   Future<File?> pickImageFromGallery() async {
     try {
-      // Request permission
       final hasPermission = await requestStoragePermission();
       if (!hasPermission) {
         debugPrint('Izin penyimpanan ditolak');
         return null;
       }
 
-      // Pick image
       final XFile? photo = await _picker.pickImage(
         source: ImageSource.gallery,
         imageQuality: 85,
@@ -75,12 +68,10 @@ class ImagePickerService {
         maxHeight: 1024,
       );
 
-      if (photo != null) {
-        return File(photo.path);
-      }
+      if (photo != null) return File(photo.path);
       return null;
-    } catch (e) {
-      debugPrint('Error picking image from gallery: $e');
+    } catch (e, st) {
+      debugPrint('Error picking image from gallery: $e\n$st');
       return null;
     }
   }

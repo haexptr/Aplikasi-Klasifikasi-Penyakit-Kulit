@@ -88,6 +88,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
   }
 
+  // Note: small fix above uses _databaseService variable; ensure it's used consistently
+  // (I keep _databaseService as the field)
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

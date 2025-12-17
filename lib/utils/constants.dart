@@ -17,13 +17,13 @@ class AppConstants {
   static const int databaseVersion = 1;
   static const String tableName = 'predictions';
   
-  // Colors - Medical Theme (Biru + Putih)
-  static const Color primaryColor = Color(0xFF1976D2); // Biru medis
-  static const Color secondaryColor = Color(0xFF42A5F5); // Biru muda
-  static const Color backgroundColor = Color(0xFFF5F7FA);
+  // Colors - Premium Medical Theme
+  static const Color primaryColor = Color(0xFF0D47A1); // Premium Deep Blue
+  static const Color secondaryColor = Color(0xFF2196F3); // Bright Blue
+  static const Color backgroundColor = Color(0xFFF8F9FA); // Clean White/Grey
   static const Color cardColor = Colors.white;
-  static const Color textPrimary = Color(0xFF212121);
-  static const Color textSecondary = Color(0xFF757575);
+  static const Color textPrimary = Color(0xFF1A1F2C); // Dark Blue-Grey
+  static const Color textSecondary = Color(0xFF62757F); // Metal Blue-Grey
   
   // Confidence Colors
   static const Color highConfidence = Color(0xFF4CAF50); // Hijau (≥75%)
@@ -94,20 +94,48 @@ class AppConstants {
       'Aplikasi ini menggunakan teknologi AI untuk membantu mengidentifikasi '
       'kemungkinan penyakit kulit berdasarkan gambar.';
   
+  static const String invalidImageTitle = 'Objek Tidak Dikenali';
+  static const String invalidImageMessage = 
+      'Sistem kami mendeteksi gambar ini mungkin bukan kondisi kulit atau kualitasnya kurang jelas. '
+      'Mohon ambil ulang foto yang fokus pada area kulit.';
+  
   // Helper Methods
+
+  /// Normalizes a confidence number into range 0.0 .. 1.0.
+  /// Accepts:
+  ///  - values already in 0..1 (e.g. 0.95) -> returns same (clamped)
+  ///  - values in 0..100 (e.g. 95.72) -> returns 0.9572
+  ///  - negative or extreme values are clamped into [0,1]
+  static double normalizeConfidence(double confidence) {
+    if (confidence.isNaN) return 0.0;
+    // If likely a percent (e.g. >1 and <=100), divide by 100
+    if (confidence > 1.0 && confidence <= 100.0) {
+      confidence = confidence / 100.0;
+    }
+    // finally clamp to 0..1
+    return confidence.clamp(0.0, 1.0);
+  }
+
+  /// Returns color based on normalized confidence
   static Color getConfidenceColor(double confidence) {
-    if (confidence >= 0.75) return highConfidence;
-    if (confidence >= 0.50) return mediumConfidence;
+    final c = normalizeConfidence(confidence);
+    if (c >= 0.75) return highConfidence;
+    if (c >= 0.50) return mediumConfidence;
     return lowConfidence;
   }
   
+  /// Returns human-friendly text based on normalized confidence
   static String getConfidenceText(double confidence) {
-    if (confidence >= 0.75) return 'Kepercayaan Tinggi';
-    if (confidence >= 0.50) return 'Kepercayaan Sedang';
+    final c = normalizeConfidence(confidence);
+    if (c >= 0.75) return 'Kepercayaan Tinggi';
+    if (c >= 0.50) return 'Kepercayaan Sedang';
     return 'Kepercayaan Rendah';
   }
   
+  /// Produces a percentage string robustly whether input is 0..1 or 0..100.
+  /// Example: 0.957 -> '95.7%', 95.7 -> '95.7%'
   static String formatConfidence(double confidence) {
-    return '${(confidence * 100).toStringAsFixed(1)}%';
+    final c = normalizeConfidence(confidence) * 100.0;
+    return '${c.toStringAsFixed(1)}%';
   }
 }
